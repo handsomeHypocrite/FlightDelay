@@ -22,24 +22,32 @@ import numpy as np
 
 
 sample_df = pd.read_csv("./sample.csv")
-# print(sample_df.shape)
 
 # Taking useful data into the context of the question
 sample_df['DEPARTURE_DATE'] = pd.to_datetime(sample_df[['YEAR', 'MONTH', 'DAY']])
 question_df = sample_df[["DEPARTURE_DATE", "SCHEDULED_DEPARTURE", "DEPARTURE_TIME", "TAIL_NUMBER", "SCHEDULED_ARRIVAL", "ARRIVAL_TIME", "ARRIVAL_DELAY"]]
-# print(question_df.shape)
 
 
 # Dropping flight cancellations and Diverted flights
 question_df['ARRIVAL_TIME'].replace('', np.nan, inplace = True)
 question_df = question_df.dropna(subset=['ARRIVAL_TIME'])
-# print(question_df.shape)
+
+
+
+flightDelay_df = question_df[["DEPARTURE_DATE", "TAIL_NUMBER", "SCHEDULED_ARRIVAL", "ARRIVAL_TIME", "ARRIVAL_DELAY"]]
+
+
+print(flightDelay_df.head())
+flightDelay_df.to_csv("Flight_Delay.csv")
 
 delay_df = question_df[["DEPARTURE_DATE", "ARRIVAL_DELAY"]]
 delay_df.set_index("DEPARTURE_DATE", inplace = True)
 
+
+
 # Resample data on daily basis. The mean delay of flight is taken per day. Some data will be weighted unevenly.
 delay_df = delay_df.resample('D').mean()
+
 
 #Moving average is taken
 delay_df["ROLLING_AVERAGE_DELAY"] = delay_df.rolling(center=False, window=7).mean()
@@ -48,4 +56,4 @@ delay_df.to_csv("Moving_Average_Delay.csv")
 
 
 print(question_df.shape)
-print(delay_df.head(365))
+print(delay_df)
